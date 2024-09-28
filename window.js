@@ -2,6 +2,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const targetTabSelect = document.getElementById("targetTab");
   const analyzeBtn = document.getElementById("analyzeBtn");
   const resultDiv = document.getElementById("result");
+  const apiKeyInput = document.getElementById("apiKeyInput");
+  const saveApiKeyBtn = document.getElementById("saveApiKeyBtn");
+
+  // Load the saved API key from Chrome storage
+  chrome.storage.local.get("CLAUDE_API_KEY", (result) => {
+    if (result.CLAUDE_API_KEY) {
+      apiKeyInput.value = result.CLAUDE_API_KEY;
+    }
+  });
+
+  // Save the API key to Chrome storage
+  saveApiKeyBtn.addEventListener("click", () => {
+    const apiKey = apiKeyInput.value.trim();
+    if (apiKey) {
+      chrome.storage.local.set({ CLAUDE_API_KEY: apiKey }, () => {
+        alert("API Key saved successfully.");
+      });
+    } else {
+      alert("Please enter a valid API key.");
+    }
+  });
 
   // Populate the select dropdown with open tabs across all windows
   chrome.tabs.query({}, (tabs) => {
@@ -23,78 +44,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     resultDiv.innerHTML = '<div class="spinner"></div>Analyzing...';
 
-    // Switch to the tab's window
-    chrome.windows.update(windowId, { focused: true }, () => {
-      chrome.tabs.update(tabId, { active: true }, () => {
-        chrome.tabs.captureVisibleTab(
-          windowId,
-          { format: "png" },
-          (dataUrl) => {
-            if (chrome.runtime.lastError) {
-              resultDiv.innerText = `Error: ${chrome.runtime.lastError.message}`;
-              return;
-            }
-
-            sendScreenshotToAPI(dataUrl);
-          }
-        );
-      });
-    });
-  });
-
-  // Send the screenshot to the API
-  function sendScreenshotToAPI(imageData) {
-    const apiKey = API_KEY;
-    const imageMediaType = "image/png"; // Adjust if your image type is different
-
-    // Strip the data URL prefix
-    const base64Data = imageData.replace(/^data:image\/(png|jpg);base64,/, "");
-
-    fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-        "anthropic-dangerous-direct-browser-access": "true", // Add this header
+    // Send a message to the background script to capture the screenshot and analyze it
+    chrome.runtime.sendMessage(
+      {
+        action: "captureScreenshot",
+        tabId: tabId,
+        windowId: windowId,
       },
-      body: JSON.stringify({
-        model: "claude-3-sonnet-20240229",
-        max_tokens: 1024,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "image",
-                source: {
-                  type: "base64",
-                  media_type: imageMediaType,
-                  data: base64Data,
-                },
-              },
-              {
-                type: "text",
-                text: "You are a professional poker coach. Your player has sent you this situation for your review. Analyze the image of the game shown, and recommend the next move. End your response with 'FINAL RECOMMENDATION: FOLD/RAISE/etc'",
-              },
-            ],
-          },
-        ],
-      }),
-    })
-      .then((response) => response.text()) // Get the response as text
-      .then((text) => {
-        try {
-          const data = JSON.parse(text); // Try to parse the text as JSON
-          const content = data.content[0].text; // Extract the content from the first message
-          resultDiv.innerText = `API Response: ${content}`;
-        } catch (error) {
-          console.error("Failed to parse JSON:", text); // Log the response text
-          resultDiv.innerText = `Error: ${error}`;
+      (response) => {
+        if (response.error) {
+          resultDiv.innerText = `Error: ${response.error}`;
+        } else {
+          resultDiv.innerText = `API Response: ${response.apiResponse}`;
         }
-      })
-      .catch((error) => {
-        resultDiv.innerText = `Error: ${error}`;
-      });
-  }
+      }
+    );
+  });
 });
