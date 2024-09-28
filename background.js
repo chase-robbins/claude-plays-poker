@@ -70,7 +70,7 @@ function sendScreenshotToAPI(imageData, username, sendResponse) {
               },
               {
                 type: "text",
-                text: `You are a professional poker coach. Your player (${username}) has sent you this situation for your review. Analyze the image of the game shown, and recommend the next move. End your response with 'FINAL RECOMMENDATION: FOLD/RAISE/etc'`,
+                text: `You are a professional poker coach. Your player (${username}) has sent you this situation for review. Analyze the image of the game shown, assessing both the strength of the player's hand and the potential threats on the board. In your analysis, carefully weigh the balance between maximizing value from weaker hands and minimizing risk from stronger hands or draws. Consider opponent tendencies, betting patterns, and possible hand ranges. Make sure your final recommendation accounts for both the current board and potential future action. Keep your response concise and to the point. End your response with 'FINAL RECOMMENDATION: FOLD/RAISE/etc.'`,
               },
             ],
           },
