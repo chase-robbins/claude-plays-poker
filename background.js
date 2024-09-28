@@ -1,16 +1,21 @@
+// Initialize the extension when installed
 chrome.runtime.onInstalled.addListener(() => {
+  // Set initial window ID to null in local storage
   chrome.storage.local.set({ windowId: null }, () => {
     console.log("Initialized extension with no selected window.");
   });
 });
 
-// Listen for messages from content script
+// Listen for messages from the popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "captureScreenshot") {
     const { tabId, windowId, username } = message;
 
+    // Focus the specified window
     chrome.windows.update(windowId, { focused: true }, () => {
+      // Activate the specified tab
       chrome.tabs.update(tabId, { active: true }, () => {
+        // Capture the visible tab content as a PNG image
         chrome.tabs.captureVisibleTab(
           windowId,
           { format: "png" },
@@ -20,24 +25,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               return;
             }
 
+            // Send the captured screenshot to the API for analysis
             sendScreenshotToAPI(dataUrl, username, sendResponse);
           }
         );
       });
     });
 
-    // Return true to indicate asynchronous response
+    // Keep the message channel open for asynchronous response
     return true;
   }
 });
 
-// Send the screenshot to the API
+// Function to send the screenshot to the API for analysis
 function sendScreenshotToAPI(imageData, username, sendResponse) {
-  const imageMediaType = "image/png"; // Adjust if your image type is different
+  const imageMediaType = "image/png";
 
-  // Strip the data URL prefix
+  // Remove the data URL prefix from the base64 image data
   const base64Data = imageData.replace(/^data:image\/(png|jpg);base64,/, "");
 
+  // Retrieve the API key from local storage
   chrome.storage.local.get("CLAUDE_API_KEY", (result) => {
     const apiKey = result.CLAUDE_API_KEY;
     if (!apiKey) {
@@ -45,13 +52,14 @@ function sendScreenshotToAPI(imageData, username, sendResponse) {
       return;
     }
 
+    // Send a POST request to the Claude API
     fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
-        "anthropic-dangerous-direct-browser-access": "true", // Add this header
+        "anthropic-dangerous-direct-browser-access": "true",
       },
       body: JSON.stringify({
         model: "claude-3-sonnet-20240229",
@@ -77,14 +85,15 @@ function sendScreenshotToAPI(imageData, username, sendResponse) {
         ],
       }),
     })
-      .then((response) => response.text()) // Get the response as text
+      .then((response) => response.text())
       .then((text) => {
         try {
-          const data = JSON.parse(text); // Try to parse the text as JSON
-          const content = data.content[0].text; // Extract the content from the first message
+          // Parse the API response
+          const data = JSON.parse(text);
+          const content = data.content[0].text;
           sendResponse({ apiResponse: content });
         } catch (error) {
-          console.error("Failed to parse JSON:", text); // Log the response text
+          console.error("Failed to parse JSON:", text);
           sendResponse({ error: `Failed to parse JSON: ${error.message}` });
         }
       })
@@ -95,6 +104,7 @@ function sendScreenshotToAPI(imageData, username, sendResponse) {
   });
 }
 
+// Open the extension popup when the browser action icon is clicked
 chrome.action.onClicked.addListener(() => {
   chrome.windows.create({
     url: chrome.runtime.getURL("window.html"),
