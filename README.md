@@ -4,45 +4,42 @@
 
 The Poker Screen Analyzer is a Chrome extension designed to capture screenshots of your active browser tab and analyze the content using an external API. The extension is particularly useful for poker players who want to get professional recommendations on their next move based on the current game situation displayed in the browser.
 
-## How to Install It on Your Machine
+## How it works
 
-1. **Clone the Repository**:
+1. **Initialization**: When the extension is installed, it initializes with no selected window.
+2. **Capture Screenshot**: The extension listens for a message to capture a screenshot of the active tab in a specified window.
+3. **Send to API**: The captured screenshot is sent to an external API (Claude) for analysis.
+4. **Receive Recommendations**: The API analyzes the screenshot and provides professional poker recommendations.
 
-   ```sh
-   git clone (this url)
-   cd claude-plays-poker
-   ```
+## How to install this locally
 
-2. **Add Your API Key**:
+1. Clone the repository.
+2. Open Chrome and navigate to `chrome://extensions/`.
+3. Enable "Developer mode" in the top right corner.
+4. Click "Load unpacked" and select the cloned repository folder.
+5. The extension should now be installed and visible in the Chrome toolbar.
 
-   - Create a file named `apikey.js` in the root directory of the project.
-   - Add the following line to `apikey.js`:
-     ```javascript
-     const API_KEY = "your_api_key_here";
-     ```
+## Configuring in the window
 
-3. **Load the Extension in Chrome**:
+1. Open the extension popup by clicking the extension icon in the Chrome toolbar.
+2. Enter your Claude API key and username in the respective fields.
+3. Click "Save API Key" and "Save Username" to store these values locally.
+4. Select the tab you want to analyze from the dropdown menu.
+5. Click "Analyze..." to capture the screenshot and get recommendations.
 
-   - Open Chrome and navigate to `chrome://extensions/`.
-   - Enable "Developer mode" by toggling the switch in the top right corner.
-   - Click on "Load unpacked" and select the directory where you cloned the repository.
+## Usage
 
-4. **Usage**:
-   - Click on the extension icon in the Chrome toolbar.
-   - Select the tab you want to analyze from the dropdown menu.
-   - Click the "Analyze..." button to capture the screenshot and send it to the API for analysis.
-   - The results will be displayed in a popup window.
+1. Open the extension popup.
+2. Ensure your API key and username are saved. Note: Username is your in game username on the site you're playing on.
+3. Select the target tab from the dropdown.
+4. Click "Analyze..." to start the analysis.
+5. View the recommendations in the result section of the popup.
 
-## API Key Details
+## Contributing
 
-The extension requires an API key to interact with the external API for analyzing the screenshots. Follow these steps to set up your API key:
-
-1. **Obtain an API Key**:
-
-   - Sign up for an account on the API provider's website.
-   - Generate an API key from your account dashboard.
-
-2. **Add the API Key to the Project**:
-
-   - Open the `apikey.js` file you created earlier.
-   - Replace `'your_api_key_here'` with your actual API key.
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature-branch`).
+3. Make your changes.
+4. Commit your changes (`git commit -am 'Add new feature'`).
+5. Push to the branch (`git push origin feature-branch`).
+6. Create a new Pull Request.
