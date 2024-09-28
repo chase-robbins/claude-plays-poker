@@ -2,6 +2,8 @@
 
 ## What the Project Does
 
+https://github.com/user-attachments/assets/e4a74735-6c08-4d79-8017-eb25b2196a18
+
 The Poker Screen Analyzer is a Chrome extension designed to capture screenshots of your active browser tab and analyze the content using an external API. The extension is particularly useful for poker players who want to get professional recommendations on their next move based on the current game situation displayed in the browser.
 
 ## How it works
