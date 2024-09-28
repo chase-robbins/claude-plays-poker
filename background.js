@@ -7,7 +7,7 @@ chrome.runtime.onInstalled.addListener(() => {
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "captureScreenshot") {
-    const { tabId, windowId } = message;
+    const { tabId, windowId, username } = message;
 
     chrome.windows.update(windowId, { focused: true }, () => {
       chrome.tabs.update(tabId, { active: true }, () => {
@@ -20,7 +20,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               return;
             }
 
-            sendScreenshotToAPI(dataUrl, sendResponse);
+            sendScreenshotToAPI(dataUrl, username, sendResponse);
           }
         );
       });
@@ -32,7 +32,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // Send the screenshot to the API
-function sendScreenshotToAPI(imageData, sendResponse) {
+function sendScreenshotToAPI(imageData, username, sendResponse) {
   const imageMediaType = "image/png"; // Adjust if your image type is different
 
   // Strip the data URL prefix
@@ -70,7 +70,7 @@ function sendScreenshotToAPI(imageData, sendResponse) {
               },
               {
                 type: "text",
-                text: "You are a professional poker coach. Your player has sent you this situation for your review. Analyze the image of the game shown, and recommend the next move. End your response with 'FINAL RECOMMENDATION: FOLD/RAISE/etc'",
+                text: `You are a professional poker coach. Your player (${username}) has sent you this situation for your review. Analyze the image of the game shown, and recommend the next move. End your response with 'FINAL RECOMMENDATION: FOLD/RAISE/etc'`,
               },
             ],
           },

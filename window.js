@@ -4,11 +4,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultDiv = document.getElementById("result");
   const apiKeyInput = document.getElementById("apiKeyInput");
   const saveApiKeyBtn = document.getElementById("saveApiKeyBtn");
+  const usernameInput = document.getElementById("usernameInput");
+  const saveUsernameBtn = document.getElementById("saveUsernameBtn");
 
-  // Load the saved API key from Chrome storage
-  chrome.storage.local.get("CLAUDE_API_KEY", (result) => {
+  // Load the saved API key and username from Chrome storage
+  chrome.storage.local.get(["CLAUDE_API_KEY", "USERNAME"], (result) => {
     if (result.CLAUDE_API_KEY) {
       apiKeyInput.value = result.CLAUDE_API_KEY;
+    }
+    if (result.USERNAME) {
+      usernameInput.value = result.USERNAME;
     }
   });
 
@@ -21,6 +26,18 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     } else {
       alert("Please enter a valid API key.");
+    }
+  });
+
+  // Save the username to Chrome storage
+  saveUsernameBtn.addEventListener("click", () => {
+    const username = usernameInput.value.trim();
+    if (username) {
+      chrome.storage.local.set({ USERNAME: username }, () => {
+        alert("Username saved successfully.");
+      });
+    } else {
+      alert("Please enter a valid username.");
     }
   });
 
@@ -37,8 +54,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // Handle the analyze button click
   analyzeBtn.addEventListener("click", () => {
     const [tabId, windowId] = targetTabSelect.value.split(",").map(Number);
+    const username = usernameInput.value.trim();
     if (isNaN(tabId) || isNaN(windowId)) {
       resultDiv.innerText = "Please select a tab.";
+      return;
+    }
+    if (!username) {
+      resultDiv.innerText = "Please enter a username.";
       return;
     }
 
@@ -50,6 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
         action: "captureScreenshot",
         tabId: tabId,
         windowId: windowId,
+        username: username,
       },
       (response) => {
         if (response.error) {
